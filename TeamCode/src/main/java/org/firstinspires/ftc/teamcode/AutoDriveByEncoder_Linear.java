@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -119,8 +120,10 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
 
         encoderDriveStraight(DRIVE_SPEED, 36, false);
         encoderDriveStraight(DRIVE_SPEED, 12, true);
-
-
+        encoderTurnRobot("left", 90);
+        encoderDriveStraight(DRIVE_SPEED, 12, true);
+        encoderTurnRobot("right", 180);
+        encoderDriveStraight(DRIVE_SPEED, 12, true);
 
         robot.leftClaw.setPosition(1.0);            // S4: Stop and close the claw.
         robot.rightClaw.setPosition(0.0);
@@ -197,22 +200,31 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
         double inchesToTurn = (revolution * (TURNING_RADIUS * 2)); //multiply revolutions by diameter to find how many inches to turn
         int newTarget = (int)(inchesToTurn * COUNTS_PER_INCH); // convert inches to turn to pulses of encoder
 
-        if(direction.toLowerCase() == "left") {
-            robot.leftDrive.setTargetPosition(robot.leftDrive.getCurrentPosition() + newTarget);
-            // Turn On RUN_TO_POSITION
-            robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        if(opModeIsActive()) {
+            if (direction.toLowerCase() == "left") {
+                robot.leftDrive.setTargetPosition(robot.leftDrive.getCurrentPosition() + newTarget);
+                // Turn On RUN_TO_POSITION
+                robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            robot.leftDrive.setPower(TURN_SPEED);
+                robot.leftDrive.setPower(TURN_SPEED);
+            } else {
+                robot.rightDrive.setTargetPosition(robot.leftDrive.getCurrentPosition() + newTarget);
+                // Turn On RUN_TO_POSITION
+                robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                robot.rightDrive.setPower(TURN_SPEED);
+            }
+            while (opModeIsActive() &&
+                    (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
+            ) {
+                telemetry.addData("Robot turning: ", direction);
+                telemetry.update();
+            }
+            robot.leftDrive.setPower(0);
+            robot.rightDrive.setPower(0);
+            // Turn off RUN_TO_POSITION
+            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-        else {
-            robot.rightDrive.setTargetPosition(robot.leftDrive.getCurrentPosition() + newTarget);
-            // Turn On RUN_TO_POSITION
-            robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            robot.rightDrive.setPower(TURN_SPEED);
-        }
-
-        robot.leftDrive.setPower(0);
-        robot.rightDrive.setPower(0);
     }
 }
