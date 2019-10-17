@@ -75,11 +75,11 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
     private ElapsedTime     runtime = new ElapsedTime();
 
     static final double     COUNTS_PER_MOTOR_REV    = 723.24 ;    // goBilda 5201
-    static final double     DRIVE_GEAR_REDUCTION    = 25.83 ;     // goBilda 5201
-    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;
     static final double     INCHES_PER_FULL_WHEEL_ROTATION = WHEEL_DIAMETER_INCHES * Math.PI; //12.566"
     static final double     COUNTS_PER_INCH         = COUNTS_PER_MOTOR_REV / INCHES_PER_FULL_WHEEL_ROTATION;
-    static final double     TURNING_RADIUS =  12; // MEASURE THE DISTANCE BETWEEN ROBOT TIRES FROM ONE SIDE TO THE OTHER
+    static final double     TURNING_RADIUS =  17.5; // MEASURE THE DISTANCE BETWEEN ROBOT TIRES FROM ONE SIDE TO THE OTHER
 
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
@@ -121,9 +121,9 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
         encoderDriveStraight(DRIVE_SPEED, 36, false);
         encoderDriveStraight(DRIVE_SPEED, 12, true);
         encoderTurnRobot("left", 90);
-        encoderDriveStraight(DRIVE_SPEED, 12, true);
+        encoderDriveStraight(DRIVE_SPEED, 12, false);
         encoderTurnRobot("right", 180);
-        encoderDriveStraight(DRIVE_SPEED, 12, true);
+        encoderDriveStraight(DRIVE_SPEED, 12, false);
 
         robot.leftClaw.setPosition(1.0);            // S4: Stop and close the claw.
         robot.rightClaw.setPosition(0.0);
@@ -135,6 +135,11 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
 
 
     public void encoderDriveStraight(double speed, double inches, boolean moveInReverse) {
+        telemetry.addData("encoderDriveStraight", inches);
+        telemetry.addData("encoderDriveStraight", moveInReverse);
+        telemetry.update();
+        sleep(2000);   // optional pause after each move
+
         int countsToRotate = (int)(inches * COUNTS_PER_INCH);
 
         int newLeftTarget;
@@ -147,7 +152,7 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
             // Determine new target position, and pass to motor controller
             newLeftTarget = robot.leftDrive.getCurrentPosition() + countsToRotate;
             newRightTarget = robot.rightDrive.getCurrentPosition() + countsToRotate;
-            if(moveInReverse) {
+            if(!moveInReverse) {
                 newLeftTarget = robot.leftDrive.getCurrentPosition() - countsToRotate;
                 newRightTarget = robot.rightDrive.getCurrentPosition() - countsToRotate;
             }
@@ -170,17 +175,53 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                   (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
-                 && (robot.leftDrive.getCurrentPosition() != newLeftTarget) && (robot.rightDrive.getCurrentPosition() != newRightTarget)
-            ){
-
-                // Display it for the driver.
-                telemetry.addData("Path1",  "Running to %7d :%7d", newLeftTarget,  newRightTarget);
-                telemetry.addData("Path2",  "Running at %7d :%7d",
-                                            robot.leftDrive.getCurrentPosition(),
-                                            robot.rightDrive.getCurrentPosition());
+            if(!moveInReverse) {
+                telemetry.addData("Moving Forward", inches);
                 telemetry.update();
+               // sleep(2000);   // optional pause after each move
+
+
+                while (opModeIsActive() &&
+                        (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
+                        && (Math.abs(robot.leftDrive.getCurrentPosition()) <= Math.abs(newLeftTarget)) && (Math.abs(robot.rightDrive.getCurrentPosition()) <= Math.abs(newRightTarget))
+                ) {
+
+                    // Display it for the driver.
+                    telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
+                    telemetry.addData("Path2", "Running at %7d :%7d",
+                            robot.leftDrive.getCurrentPosition(),
+                            robot.rightDrive.getCurrentPosition());
+                    telemetry.update();
+                }
+            } else {
+                telemetry.addData("Moving Backwards", inches);
+                telemetry.update();
+               // sleep(2000);   // optional pause after each move
+
+                telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
+                telemetry.addData("Path2", "Running at %7d :%7d",
+                        robot.leftDrive.getCurrentPosition(),
+                        robot.rightDrive.getCurrentPosition());
+                telemetry.update();
+
+                while (opModeIsActive() &&
+                        (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
+                        && (robot.leftDrive.getCurrentPosition() >= (-1 * newLeftTarget)) && (robot.rightDrive.getCurrentPosition() >= (-1 * newRightTarget))
+                ) {
+
+                    // Display it for the driver.
+                    telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
+                    telemetry.addData("Path2", "Running at %7d :%7d",
+                            robot.leftDrive.getCurrentPosition(),
+                            robot.rightDrive.getCurrentPosition());
+                    telemetry.update();
+                }
+                telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
+                telemetry.addData("Path2", "Running at %7d :%7d",
+                        robot.leftDrive.getCurrentPosition(),
+                        robot.rightDrive.getCurrentPosition());
+                telemetry.update();
+                //sleep(2000);   // optional pause after each move
             }
 
             // Stop all motion;
@@ -191,7 +232,7 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
             robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            sleep(250);   // optional pause after each move
+            sleep(3000);   // optional pause after each move
         }
     }
 
@@ -201,10 +242,18 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
         int newTarget = (int)(inchesToTurn * COUNTS_PER_INCH); // convert inches to turn to pulses of encoder
 
         if(opModeIsActive()) {
-            if (direction.toLowerCase() == "left") {
+            if (direction.toLowerCase() == "right") {
                 robot.leftDrive.setTargetPosition(robot.leftDrive.getCurrentPosition() + newTarget);
                 // Turn On RUN_TO_POSITION
                 robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                while (opModeIsActive() &&
+                        (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
+                        && (robot.leftDrive.getCurrentPosition() <= newTarget)
+                ) {
+                    telemetry.addData("Robot turning: ", direction);
+                    telemetry.update();
+                }
 
                 robot.leftDrive.setPower(TURN_SPEED);
             } else {
@@ -213,13 +262,30 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
                 robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
                 robot.rightDrive.setPower(TURN_SPEED);
-            }
-            while (opModeIsActive() &&
-                    (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
-            ) {
-                telemetry.addData("Robot turning: ", direction);
+                // Display it for the driver.
+                telemetry.addData("Path1", "Running to %7d :%7d", newTarget , newTarget);
+                telemetry.addData("Path2", "Running at %7d :%7d",
+                        robot.leftDrive.getCurrentPosition(),
+                        robot.rightDrive.getCurrentPosition());
                 telemetry.update();
+                //leep(2000);
+                while (opModeIsActive() &&
+                        (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
+                        && (robot.rightDrive.getCurrentPosition() <= newTarget)
+                ) {
+                    telemetry.addData("Robot turning: ", direction);
+                    telemetry.update();
+                }
+
+                telemetry.addData("Path1", "Running to %7d :%7d", newTarget , newTarget);
+                telemetry.addData("Path2", "Running at %7d :%7d",
+                        robot.leftDrive.getCurrentPosition(),
+                        robot.rightDrive.getCurrentPosition());
+                telemetry.update();
+                //sleep(2000);
+
             }
+
             robot.leftDrive.setPower(0);
             robot.rightDrive.setPower(0);
             // Turn off RUN_TO_POSITION
