@@ -29,14 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 
 /**
@@ -52,34 +50,52 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Basic: Linear OpMode ENCODER", group="Linear Opmode")
-@Disabled
-public class BasicOpMode_Linear_ENC extends LinearOpMode {
-    HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+@TeleOp(name="Mecanum Drive", group="Linear Opmode")
+//@Disabled
+public class Mechanum_Linear extends LinearOpMode {
+
     // Declare OpMode members.
-
-    /*  private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    */
-
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftFront = null;
+    private DcMotor rightFront = null;
+    private DcMotor leftRear = null;
+    private DcMotor rightRear = null;
 
     @Override
     public void runOpMode() {
-        robot.init(hardwareMap);
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        waitForStart();
-        //runtime.reset();
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        leftFront  = hardwareMap.get(DcMotor.class, "FL");
+        rightFront = hardwareMap.get(DcMotor.class, "FR");
+        leftRear  = hardwareMap.get(DcMotor.class, "BL");
+        rightRear = hardwareMap.get(DcMotor.class, "BR");
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
 
+
+        // Wait for the game to start (driver presses PLAY)
+
+
+        waitForStart();
+        runtime.reset();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            String posRight = String.valueOf(robot.rightDrive.getCurrentPosition());
-            String posLeft = String.valueOf(robot.leftDrive.getCurrentPosition());
-            telemetry.addData("Left Position (Counts)", posLeft);
-            telemetry.addData("Right Position (Counts)", posRight);
-            telemetry.update();
+            double r = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
+            double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
+            double rightX = gamepad1.right_stick_x;
+            final double lf = r * Math.cos(robotAngle) + rightX;
+            final double rf = r * Math.sin(robotAngle) - rightX;
+            final double lr = r * Math.sin(robotAngle) + rightX;
+            final double rr = r * Math.cos(robotAngle) - rightX;
+            leftFront.setPower(lf);
+            rightFront.setPower(rf);
+            leftRear.setPower(lr);
+            rightRear.setPower(rr);
+
         }
     }
 }
