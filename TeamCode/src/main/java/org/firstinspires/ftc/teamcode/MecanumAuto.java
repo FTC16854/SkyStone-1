@@ -29,10 +29,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -53,9 +53,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Mecanum Drive", group="Linear Opmode")
+@Autonomous(name="mecanumAuto", group="Linear Opmode")
 //@Disabled
-public class Mechanum_Linear extends LinearOpMode {
+public class MecanumAuto extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -67,7 +67,9 @@ public class Mechanum_Linear extends LinearOpMode {
     private DcMotorSimple liftMotor = null;
     private Servo armServo = null;
     private Servo clawServo = null;
+
     @Override
+
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -75,9 +77,9 @@ public class Mechanum_Linear extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftFront  = hardwareMap.get(DcMotor.class, "FL");
+        leftFront = hardwareMap.get(DcMotor.class, "FL");
         rightFront = hardwareMap.get(DcMotor.class, "FR");
-        leftRear  = hardwareMap.get(DcMotor.class, "BL");
+        leftRear = hardwareMap.get(DcMotor.class, "BL");
         rightRear = hardwareMap.get(DcMotor.class, "BR");
         intakeMotors = hardwareMap.get(DcMotorSimple.class, "im");
         liftMotor = hardwareMap.get(DcMotorSimple.class, "lm");
@@ -89,47 +91,28 @@ public class Mechanum_Linear extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-        // run until the end of the match (driver presses STOP)
+
         while (opModeIsActive()) {
-
-            moveRobot();
-
-            if (gamepad1.b || gamepad2.b){
-                runIntakeMotor(true);
-            }
-            else{
-                if (gamepad1.a || gamepad2.a) {
-                runIntakeMotor(false);
-                }
-                else{
-                    stopIntakeMotor();
-                }
-            }
-
-
-
-            if (gamepad1.x || gamepad2.x){
-                runLiftMotor(false);
-            }
-            else{
-                if (gamepad1.y || gamepad2.y) {
-                    runLiftMotor(true);
-                }
-                else{
-                    stopLiftMotor();
+            if (gamepad1.b) {
+                moveRobot(.5, 90);
+            } else {
+                if (gamepad1.a) {
+                    moveRobot(.5, 45);
+                } else {
+                    stopRobot();
                 }
             }
         }
     }
 
-    public void moveRobot(){
-        double leftStickMovement = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
+    public void moveRobot(double speed, double angle) {
+        speed = -speed;
+        double robotAngle = Math.toRadians(angle) - Math.PI / 4;
         double Rotation = gamepad1.right_stick_x;
-        final double lf = leftStickMovement * Math.cos(robotAngle) + Rotation;
-        final double rf = leftStickMovement * Math.sin(robotAngle) - Rotation;
-        final double lr = leftStickMovement * Math.sin(robotAngle) + Rotation;
-        final double rr = leftStickMovement * Math.cos(robotAngle) - Rotation;
+        final double lf = speed * Math.cos(robotAngle) + Rotation;
+        final double rf = speed * Math.sin(robotAngle) - Rotation;
+        final double lr = speed * Math.sin(robotAngle) + Rotation;
+        final double rr = speed * Math.cos(robotAngle) - Rotation;
         leftFront.setPower(lf);
         rightFront.setPower(rf);
         leftRear.setPower(lr);
@@ -137,30 +120,12 @@ public class Mechanum_Linear extends LinearOpMode {
 
     }
 
+    public void stopRobot() {
+        leftFront.setPower(0);
+        rightFront.setPower(0);
+        leftRear.setPower(0);
+        rightRear.setPower(0);
 
-    public void runIntakeMotor(boolean reverse){
-        double power = 1.0;
-        if (reverse){
-            power = -1.0;
-        }
-
-        intakeMotors.setPower(power);
     }
 
-    public void runLiftMotor(boolean down){
-        double power = 1.0;
-        if (down){
-            power = -1.0;
-        }
-
-        liftMotor.setPower(power);
-    }
-
-
-    public void stopLiftMotor(){
-        liftMotor.setPower(0);
-    }
-    public void stopIntakeMotor(){
-        intakeMotors.setPower(0);
-    }
 }
