@@ -53,9 +53,9 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  */
 
 @Autonomous(name="Basic: Linear OpMode ENCODER", group="Linear Opmode")
-@Disabled
+//@Disabled
 public class BasicOpMode_Linear_ENC extends LinearOpMode {
-    HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+    //HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
     // Declare OpMode members.
 
     /*  private ElapsedTime runtime = new ElapsedTime();
@@ -66,7 +66,7 @@ public class BasicOpMode_Linear_ENC extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        robot.init(hardwareMap);
+       // robot.init(hardwareMap);
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
@@ -75,10 +75,10 @@ public class BasicOpMode_Linear_ENC extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            String posRight = String.valueOf(robot.rightDrive.getCurrentPosition());
-            String posLeft = String.valueOf(robot.leftDrive.getCurrentPosition());
-            telemetry.addData("Left Position (Counts)", posLeft);
-            telemetry.addData("Right Position (Counts)", posRight);
+           // String posRight = String.valueOf(robot.rightDrive.getCurrentPosition());
+           // String posLeft = String.valueOf(robot.leftDrive.getCurrentPosition());
+            telemetry.addData("Left triger (Counts)", gamepad1.left_stick_x);
+            telemetry.addData("Right triger (Counts)", gamepad1.right_stick_y);
             telemetry.update();
         }
     }

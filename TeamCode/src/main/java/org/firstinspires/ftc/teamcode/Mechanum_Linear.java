@@ -94,33 +94,20 @@ public class Mechanum_Linear extends LinearOpMode {
 
             moveRobot();
 
-            if (gamepad1.b || gamepad2.b){
-                runIntakeMotor(true);
-            }
-            else{
-                if (gamepad1.a || gamepad2.a) {
+            if (gamepad1.right_trigger > 0 ) {
                 runIntakeMotor(false);
-                }
-                else{
-                    stopIntakeMotor();
-                }
+            }
+            else if(gamepad1.left_trigger > 0) {
+                runIntakeMotor(true);
+            } else if(gamepad1.left_trigger== 0 || gamepad1.right_trigger== 0)
+                stopIntakeMotor();
             }
 
 
+            runLiftMotor(gamepad2.right_stick_y);
 
-            if (gamepad1.x || gamepad2.x){
-                runLiftMotor(false);
-            }
-            else{
-                if (gamepad1.y || gamepad2.y) {
-                    runLiftMotor(true);
-                }
-                else{
-                    stopLiftMotor();
-                }
-            }
         }
-    }
+
 
     public void moveRobot(){
         double leftStickMovement = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
@@ -147,19 +134,11 @@ public class Mechanum_Linear extends LinearOpMode {
         intakeMotors.setPower(power);
     }
 
-    public void runLiftMotor(boolean down){
-        double power = 1.0;
-        if (down){
-            power = -1.0;
-        }
+    public void runLiftMotor(double power){
 
         liftMotor.setPower(power);
     }
 
-
-    public void stopLiftMotor(){
-        liftMotor.setPower(0);
-    }
     public void stopIntakeMotor(){
         intakeMotors.setPower(0);
     }
