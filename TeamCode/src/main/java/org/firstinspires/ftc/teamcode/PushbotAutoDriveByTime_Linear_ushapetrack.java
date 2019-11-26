@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -57,7 +58,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  */
 
 @Autonomous(name="Pushbot: Auto Drive By Time", group="Pushbot")
-//@Disabled
+@Disabled
 public class PushbotAutoDriveByTime_Linear_ushapetrack extends LinearOpMode {
 
     /* Declare OpMode members. */

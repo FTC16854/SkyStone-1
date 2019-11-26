@@ -34,9 +34,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 
 /**
@@ -52,34 +53,79 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Basic: Linear OpMode ENCODER", group="Linear Opmode")
+@Autonomous(name="mecanumAuto", group="Linear Opmode")
 //@Disabled
-public class BasicOpMode_Linear_ENC extends LinearOpMode {
-    //HardwarePushbot         robot   = new HardwarePushbot();   // Use a Pushbot's hardware
+public class MecanumAuto extends LinearOpMode {
+
     // Declare OpMode members.
-
-    /*  private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    */
-
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftFront = null;
+    private DcMotor rightFront = null;
+    private DcMotor leftRear = null;
+    private DcMotor rightRear = null;
+    private DcMotorSimple intakeMotors = null;
+    private DcMotorSimple liftMotor = null;
+    private Servo armServo = null;
+    private Servo clawServo = null;
 
     @Override
+
     public void runOpMode() {
-       // robot.init(hardwareMap);
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        waitForStart();
-        //runtime.reset();
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        leftFront = hardwareMap.get(DcMotor.class, "FL");
+        rightFront = hardwareMap.get(DcMotor.class, "FR");
+        leftRear = hardwareMap.get(DcMotor.class, "BL");
+        rightRear = hardwareMap.get(DcMotor.class, "BR");
+        intakeMotors = hardwareMap.get(DcMotorSimple.class, "im");
+        liftMotor = hardwareMap.get(DcMotorSimple.class, "lm");
+        //armServo = hardwareMap.get(Servo.class, "as");
+        //clawServo = hardwareMap.get(Servo.class,"cs");
 
-        // run until the end of the match (driver presses STOP)
+        // Wait for the game to start (driver presses PLAY)
+
+
+        waitForStart();
+        runtime.reset();
+
         while (opModeIsActive()) {
-           // String posRight = String.valueOf(robot.rightDrive.getCurrentPosition());
-           // String posLeft = String.valueOf(robot.leftDrive.getCurrentPosition());
-            telemetry.addData("Left triger (Counts)", gamepad1.left_stick_x);
-            telemetry.addData("Right triger (Counts)", gamepad1.right_stick_y);
-            telemetry.update();
+            if (gamepad1.b) {
+                moveRobot(.5, 90);
+            } else {
+                if (gamepad1.a) {
+                    moveRobot(.5, 45);
+                } else {
+                    stopRobot();
+                }
+            }
         }
     }
+
+    public void moveRobot(double speed, double angle) {
+        speed = -speed;
+        double robotAngle = Math.toRadians(angle) - Math.PI / 4;
+        double Rotation = gamepad1.right_stick_x;
+        final double lf = speed * Math.cos(robotAngle) + Rotation;
+        final double rf = speed * Math.sin(robotAngle) - Rotation;
+        final double lr = speed * Math.sin(robotAngle) + Rotation;
+        final double rr = speed * Math.cos(robotAngle) - Rotation;
+        leftFront.setPower(lf);
+        rightFront.setPower(rf);
+        leftRear.setPower(lr);
+        rightRear.setPower(rr);
+
+    }
+
+    public void stopRobot() {
+        leftFront.setPower(0);
+        rightFront.setPower(0);
+        leftRear.setPower(0);
+        rightRear.setPower(0);
+
+    }
+
 }
