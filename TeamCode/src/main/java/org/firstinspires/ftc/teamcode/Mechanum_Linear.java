@@ -40,19 +40,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
-
 @TeleOp(name="Mecanum Drive", group="Linear Opmode")
 //@Disabled
 public class Mechanum_Linear extends LinearOpMode {
@@ -67,11 +54,19 @@ public class Mechanum_Linear extends LinearOpMode {
     private DcMotorSimple liftMotor = null;
     private Servo armServo = null;
     private Servo clawServo = null;
-    @Override
-    public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
+    //set by initialize and runLiftMotot functions.
+    //used to determine if it's okay to move armServo
+    //which should only happen when in MAX LIFT POSITION
+    private double currentLiftPosition;
+    private double MAX_LIFT_POSITION;
+
+
+    /*
+        DC and Servo motor setup, this method should be called first in the opmode method.
+        You can change motor and servo direction in by removing comments in this code
+     */
+    public void Initialize() {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -81,32 +76,52 @@ public class Mechanum_Linear extends LinearOpMode {
         rightRear = hardwareMap.get(DcMotor.class, "BR");
         intakeMotors = hardwareMap.get(DcMotorSimple.class, "im");
         liftMotor = hardwareMap.get(DcMotorSimple.class, "lm");
-        //armServo = hardwareMap.get(Servo.class, "as");
-        //clawServo = hardwareMap.get(Servo.class,"cs");
+        armServo = hardwareMap.get(Servo.class, "arm");
+        clawServo = hardwareMap.get(Servo.class,"claw");
+
+
+        //TODO: setup armServo, it it's moving backwards, uncomment next line
+        //armServo.setDirection(Servo.Direction.REVERSE);
+        //setup arm servo max travel
+
+
+        //TODO: Possibly uncomment if lift motor is running backwards
+        //liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //TODO: ready the leftFront motor encoder, that we're using for liftMotor
+        //make sure position is 0 when the lift arm is all the way down
+        //which should be done manually if it's left upright when the robot is off
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //run without means user power instead of speed, not that encoders don't count
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        currentLiftPosition =  leftFront.getCurrentPosition(); //should be 0 based on stop and reset
+    }
+
+    @Override
+    public void runOpMode() {
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+        //setup dc and servo motors
+        Initialize();
 
         // Wait for the game to start (driver presses PLAY)
-
-
         waitForStart();
         runtime.reset();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             moveRobot();
-
-            if (gamepad1.right_trigger > 0 ) {
-                runIntakeMotor(false);
+            runIntakeMotor();
+            runLiftMotor(gamepad2.left_stick_y);
+            runArmServo();
+            if(IsEmergency()) {
+                break;
             }
-            else if(gamepad1.left_trigger > 0) {
-                runIntakeMotor(true);
-            } else if(gamepad1.left_trigger== 0 || gamepad1.right_trigger== 0)
-                stopIntakeMotor();
-            }
-
-
-            runLiftMotor(gamepad2.right_stick_y);
-
         }
+        telemetry.addData("Status", "OpMode Stopped.");
+        telemetry.update();
+    }
 
 
     public void moveRobot(){
@@ -121,25 +136,102 @@ public class Mechanum_Linear extends LinearOpMode {
         rightFront.setPower(rf);
         leftRear.setPower(lr);
         rightRear.setPower(rr);
-
     }
 
 
-    public void runIntakeMotor(boolean reverse){
-        double power = 1.0;
-        if (reverse){
-            power = -1.0;
+    public void runIntakeMotor(){
+        double power = 0.0;
+        if (gamepad1.right_trigger > 0) {
+            power = 1.0; //forward
+        } else if (gamepad1.left_trigger > 0) {
+            power    = -1.0; //reverse
+        } else if (gamepad1.left_trigger == 0 && gamepad1.right_trigger == 0) {
+            power = 0.0; //stop
+        } else {
+            power = 0.0; //catchall to stop intake if no conditions are matched
         }
-
         intakeMotors.setPower(power);
     }
 
+
     public void runLiftMotor(double power){
 
-        liftMotor.setPower(power);
+        double COUNTS_PER_MOTOR_REV    = 720.0 ;    // eg: gobuilda Motor Encoder
+        double DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+        //TODO: Measure lift motor wheel diameter (in inches) and change 2.0 to that
+        double WHEEL_DIAMETER_INCHES   = 2.0 ;     // For figuring circumference,
+                                                  // may need to be changed for lift motor
+        double COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+                (WHEEL_DIAMETER_INCHES * 3.1415); // 114.5949 counts per inch for lift motor
+                                                  // guessing it was about 2 inches from memory
+
+        //TODO: Assuming lift motor down is leftMotor encoder 0 since we reset on initialize
+        double minPosition = 0;
+        //TODO: Change 10 to max inches for lift to rise - 10 inches was my safe guess
+        double maxPosition = COUNTS_PER_INCH * 10; //should be 10 inches, this will need to be
+                                                  //adjusted based on max lift arm height
+
+        MAX_LIFT_POSITION = maxPosition; //set here so changes to COUNTS_PER_INCH AND INCHES count
+        currentLiftPosition = leftFront.getCurrentPosition(); //remember liftMotor encoder is actually
+                                                    // attached to leftFront motor encoder
+
+        if((currentLiftPosition > 0) && currentLiftPosition < maxPosition) {
+            liftMotor.setPower(power);
+        //fail safe for max and min encoder position
+        } else {
+            liftMotor.setPower(0);
+        }
     }
 
-    public void stopIntakeMotor(){
-        intakeMotors.setPower(0);
+    /*
+        If servo is running in the wrong direction, check the initialize function to setup reverse
+     */
+    public void runArmServo() {
+        //TODO: Change MAX. Currently set to 180 degrees or 180/280
+        double MAX = 0.64; //should be 180 degrees, 1.0 should be 280 -- the max for gobuilda servo
+
+        double liftHeightTolernce = MAX_LIFT_POSITION * .05;
+
+        //Make sure the lift is up before allowing arm to swing in or out
+        if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolernce)) {
+
+            if (gamepad2.left_trigger > 0) {
+                armServo.setPosition(MAX); //180 degrees - away from robot
+            } else {
+                armServo.setPosition(0); //0 degrees - point in towards robot
+            }
+        }
+    }
+
+    public void runClawServo() {
+        //TODO: Change MAX. Currently set to 5 degrees or 5/280
+        double MAX = 0.0178; //guess claw grip at 5degree servo movement, may need to adjust
+
+        if(gamepad2.right_trigger > 0) {
+            clawServo.setPosition(MAX); //5 degrees - grip block
+        }
+        else {
+            clawServo.setPosition(0); //0 degrees - release block
+        }
+    }
+
+
+    public boolean IsEmergency() {
+        boolean emergency = false;
+
+        if(gamepad1.dpad_right || gamepad1.dpad_left || gamepad1.dpad_down
+                || gamepad1.dpad_up || gamepad1.b || gamepad2.dpad_up || gamepad2.dpad_down
+                || gamepad2.dpad_left || gamepad2.dpad_right || gamepad2.b) {
+            emergency = true;
+            //power down all motors
+            //servos should stop when breaking out of opmode active loop
+            leftFront.setPower(0);
+            rightFront.setPower(0);
+            leftRear.setPower(0);
+            rightRear.setPower(0);
+            liftMotor.setPower(0);
+        }
+
+        return emergency;
     }
 }
