@@ -115,6 +115,7 @@ public class Mechanum_Linear extends LinearOpMode {
             runIntakeMotor();
             runLiftMotor(gamepad2.left_stick_y);
             runArmServo();
+            runClawServo();
             if(IsEmergency()) {
                 break;
             }
