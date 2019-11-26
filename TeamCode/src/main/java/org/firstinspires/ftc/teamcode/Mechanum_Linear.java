@@ -34,23 +34,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-
-
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
 
 @TeleOp(name="Mecanum Drive", group="Linear Opmode")
 //@Disabled
@@ -62,18 +49,17 @@ public class Mechanum_Linear extends LinearOpMode {
     private DcMotor rightFront = null;
     private DcMotor leftRear = null;
     private DcMotor rightRear = null;
-    private CRServo intakeMotors = null;
-    private CRServo liftMotor = null;
+    private DcMotorSimple  intakeMotors = null;
+    private DcMotorSimple  liftMotor = null;
     private Servo armServo = null;
     private Servo clawServo = null;
+
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
         leftFront  = hardwareMap.get(DcMotor.class, "FL");
         rightFront = hardwareMap.get(DcMotor.class, "FR");
         leftRear  = hardwareMap.get(DcMotor.class, "BL");
@@ -83,28 +69,14 @@ public class Mechanum_Linear extends LinearOpMode {
         //armServo = hardwareMap.get(Servo.class, "as");
         //clawServo = hardwareMap.get(Servo.class,"cs");
 
-        // Wait for the game to start (driver presses PLAY)
-
-
         waitForStart();
         runtime.reset();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
             moveRobot();
-
-            if (gamepad1.b || gamepad2.b){
-                runIntakeMotor(true);
-            }
-            if (gamepad1.a || gamepad2.a) {
-                runIntakeMotor(false);
-            }
-            if (gamepad1.x || gamepad2.x){
-                runLiftMotor(false);
-            }
-            if (gamepad1.y || gamepad2.y) {
-                runLiftMotor(true);
-            }
+            runIntakeMotor();
+            runLiftMotor();
         }
     }
 
@@ -120,26 +92,30 @@ public class Mechanum_Linear extends LinearOpMode {
         rightFront.setPower(rf);
         leftRear.setPower(lr);
         rightRear.setPower(rr);
-
     }
 
-
-    public void runIntakeMotor(boolean reverse){
-        double power = 1.0;
-        if (reverse){
+    public void runIntakeMotor(){
+        double power = 0.0;
+        if (gamepad1.a || gamepad2.a) {
+            power  = 1.0;
+        }
+        if (gamepad1.b || gamepad2.b){
             power = -1.0;
         }
-
-        intakeMotors.setPower(-1.0);
+        intakeMotors.setDirection(DcMotorSimple.Direction.FORWARD);
+        intakeMotors.setPower(power);
     }
 
-    public void runLiftMotor(boolean down){
-        double power = 1.0;
-        if (down){
+    public void runLiftMotor(){
+        double power = 0.0;
+        if (gamepad1.x || gamepad2.x){
+            power = 1.0;
+        }
+        if (gamepad1.y || gamepad2.y) {
             power = -1.0;
         }
-
-        liftMotor.setPower(-1.0);
+        liftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        liftMotor.setPower(power);
     }
 
 }

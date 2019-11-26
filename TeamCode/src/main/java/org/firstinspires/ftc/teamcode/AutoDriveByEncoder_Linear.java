@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import java.util.logging.Logger;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
@@ -268,7 +269,7 @@ public class AutoDriveByEncoder_Linear extends LinearOpMode {
                         robot.leftDrive.getCurrentPosition(),
                         robot.rightDrive.getCurrentPosition());
                 telemetry.update();
-                //leep(2000);
+                //sleep(2000);
                 while (opModeIsActive() &&
                         (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())
                         && (robot.rightDrive.getCurrentPosition() <= newTarget)

@@ -1,3 +1,7 @@
+https://android.jlelse.eu/quick-tip-lose-the-cables-use-wireless-adb-8641f4856ed8
+
+
+
 ## TeamCode Module
 
 Welcome!
