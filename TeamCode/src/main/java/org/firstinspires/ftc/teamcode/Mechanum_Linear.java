@@ -79,6 +79,7 @@ public class Mechanum_Linear extends LinearOpMode {
         armServo = hardwareMap.get(Servo.class, "arm");
         clawServo = hardwareMap.get(Servo.class,"claw");
 
+       // clawServo.setDirection(Servo.Direction.REVERSE);
 
         //TODO: setup armServo, it it's moving backwards, uncomment next line
         //armServo.setDirection(Servo.Direction.REVERSE);
@@ -191,22 +192,30 @@ public class Mechanum_Linear extends LinearOpMode {
         //TODO: Change MAX. Currently set to 180 degrees or 180/280
         double MAX = 0.64; //should be 180 degrees, 1.0 should be 280 -- the max for gobuilda servo
 
-        double liftHeightTolernce = MAX_LIFT_POSITION * .05;
+        double liftHeightTolerance = MAX_LIFT_POSITION * .05;
 
+        //test code because encoder is not wired yet
+        if (gamepad2.left_trigger > 0) {
+            armServo.setPosition(MAX); //180 degrees - away from robot
+        } else {
+            armServo.setPosition(0); //0 degrees - point in towards robot
+        }
+        /*
         //Make sure the lift is up before allowing arm to swing in or out
-        if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolernce)) {
+        if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolerance)) {
 
             if (gamepad2.left_trigger > 0) {
                 armServo.setPosition(MAX); //180 degrees - away from robot
             } else {
                 armServo.setPosition(0); //0 degrees - point in towards robot
             }
-        }
+        } */
     }
 
     public void runClawServo() {
         //TODO: Change MAX. Currently set to 5 degrees or 5/280
-        double MAX = 0.0178; //guess claw grip at 5degree servo movement, may need to adjust
+     //   double MAX = 0.0178; //guess claw grip at 5degree servo movement, may need to adjust
+        double MAX = 0.2; //guess claw grip at 5degree servo movement, may need to adjust
 
         if(gamepad2.right_trigger > 0) {
             clawServo.setPosition(MAX); //5 degrees - grip block
