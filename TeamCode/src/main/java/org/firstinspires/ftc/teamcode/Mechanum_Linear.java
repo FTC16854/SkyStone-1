@@ -145,8 +145,10 @@ public class Mechanum_Linear extends LinearOpMode {
         double power = 0.0;
         if (gamepad1.right_trigger > 0) {
             power = 1.0; //forward
+            runClawServo();
         } else if (gamepad1.left_trigger > 0) {
             power    = -1.0; //reverse
+
         } else if (gamepad1.left_trigger == 0 && gamepad1.right_trigger == 0) {
             power = 0.0; //stop
         } else {
@@ -161,7 +163,7 @@ public class Mechanum_Linear extends LinearOpMode {
         double COUNTS_PER_MOTOR_REV    = 720.0 ;    // eg: gobuilda Motor Encoder
         double DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
         //TODO: Measure lift motor wheel diameter (in inches) and change 2.0 to that
-        double WHEEL_DIAMETER_INCHES   = 2.0 ;     // For figuring circumference,
+        double WHEEL_DIAMETER_INCHES   = 1.9740 ;     // For figuring circumference,
                                                   // may need to be changed for lift motor
         double COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                 (WHEEL_DIAMETER_INCHES * 3.1415); // 114.5949 counts per inch for lift motor
@@ -193,14 +195,14 @@ public class Mechanum_Linear extends LinearOpMode {
         double MAX = 0.64; //should be 180 degrees, 1.0 should be 280 -- the max for gobuilda servo
 
         double liftHeightTolerance = MAX_LIFT_POSITION * .05;
-
+        /*
         //test code because encoder is not wired yet
         if (gamepad2.left_trigger > 0) {
             armServo.setPosition(MAX); //180 degrees - away from robot
         } else {
             armServo.setPosition(0); //0 degrees - point in towards robot
         }
-        /*
+        */
         //Make sure the lift is up before allowing arm to swing in or out
         if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolerance)) {
 
@@ -209,7 +211,7 @@ public class Mechanum_Linear extends LinearOpMode {
             } else {
                 armServo.setPosition(0); //0 degrees - point in towards robot
             }
-        } */
+        }
     }
 
     public void runClawServo() {
