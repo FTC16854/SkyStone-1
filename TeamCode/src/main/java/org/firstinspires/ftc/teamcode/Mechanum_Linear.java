@@ -114,12 +114,24 @@ public class Mechanum_Linear extends LinearOpMode {
 
             moveRobot();
             runIntakeMotor();
-            runLiftMotor(gamepad2.left_stick_y);
+
+
+            //runLiftMotor(gamepad2.left_stick_y);
+
+            if (gamepad2.a){
+                runLiftMotor(1);
+            }
+
+            if (gamepad2.b) {
+                runLiftMotor(-1);
+            }
             runArmServo();
             runClawServo();
             if(IsEmergency()) {
                 break;
             }
+            telemetry.addData("lift current pos", currentLiftPosition);
+            telemetry.update();
         }
         telemetry.addData("Status", "OpMode Stopped.");
         telemetry.update();
@@ -185,6 +197,7 @@ public class Mechanum_Linear extends LinearOpMode {
         } else {
             liftMotor.setPower(0);
         }
+
     }
 
     /*
@@ -204,6 +217,7 @@ public class Mechanum_Linear extends LinearOpMode {
         }
         */
         //Make sure the lift is up before allowing arm to swing in or out
+
         if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolerance)) {
 
             if (gamepad2.left_trigger > 0) {
@@ -233,7 +247,7 @@ public class Mechanum_Linear extends LinearOpMode {
 
         if(gamepad1.dpad_right || gamepad1.dpad_left || gamepad1.dpad_down
                 || gamepad1.dpad_up || gamepad1.b || gamepad2.dpad_up || gamepad2.dpad_down
-                || gamepad2.dpad_left || gamepad2.dpad_right || gamepad2.b) {
+                || gamepad2.dpad_left || gamepad2.dpad_right ) {
             emergency = true;
             //power down all motors
             //servos should stop when breaking out of opmode active loop
