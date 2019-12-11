@@ -87,7 +87,7 @@ public class Mechanum_Linear extends LinearOpMode {
 
 
         //TODO: Possibly uncomment if lift motor is running backwards
-        //liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //TODO: ready the leftFront motor encoder, that we're using for liftMotor
         //make sure position is 0 when the lift arm is all the way down
@@ -116,15 +116,19 @@ public class Mechanum_Linear extends LinearOpMode {
             runIntakeMotor();
 
 
-            //runLiftMotor(gamepad2.left_stick_y);
+            runLiftMotor(gamepad2.left_stick_y);
 
-            if (gamepad2.a){
+            /*
+            if(gamepad2.a){
                 runLiftMotor(1);
             }
-
-            if (gamepad2.b) {
+            else if(gamepad2.b) {
                 runLiftMotor(-1);
             }
+            */
+
+
+
             runArmServo();
             runClawServo();
             if(IsEmergency()) {
@@ -171,6 +175,8 @@ public class Mechanum_Linear extends LinearOpMode {
 
 
     public void runLiftMotor(double power){
+        double stickY = -power;
+        double HOLDING_POWER = 0.02;
 
         double COUNTS_PER_MOTOR_REV    = 720.0 ;    // eg: gobuilda Motor Encoder
         double DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
@@ -184,19 +190,48 @@ public class Mechanum_Linear extends LinearOpMode {
         //TODO: Assuming lift motor down is leftMotor encoder 0 since we reset on initialize
         double minPosition = 0;
         //TODO: Change 10 to max inches for lift to rise - 10 inches was my safe guess
-        double maxPosition = COUNTS_PER_INCH * 10; //should be 10 inches, this will need to be
+        double maxPosition = COUNTS_PER_INCH * 20; //should be 10 inches, this will need to be
                                                   //adjusted based on max lift arm height
 
         MAX_LIFT_POSITION = maxPosition; //set here so changes to COUNTS_PER_INCH AND INCHES count
-        currentLiftPosition = leftFront.getCurrentPosition(); //remember liftMotor encoder is actually
+        currentLiftPosition = -leftFront.getCurrentPosition(); //remember liftMotor encoder is actually
                                                     // attached to leftFront motor encoder
 
-        if((currentLiftPosition > 0) && currentLiftPosition < maxPosition) {
-            liftMotor.setPower(power);
-        //fail safe for max and min encoder position
-        } else {
-            liftMotor.setPower(0);
+
+        if(currentLiftPosition < maxPosition && stickY > 0){
+            liftMotor.setPower(stickY);
+
+            telemetry.addData("Stick Y:", stickY);
+
+        } else if(currentLiftPosition > minPosition && stickY < 0){
+            liftMotor.setPower(stickY);
+
+            telemetry.addData("Stick Y:", stickY);
+            }
+            else{
+                if(currentLiftPosition > 5){
+                    liftMotor.setPower(HOLDING_POWER);
+                }
+            //    liftMotor.setPower(0); //fail safe for max and min encoder position
+
+                telemetry.addData("Power:",power);
+            }
+
+            //Should be cleaned up and/or removed. Doesn't seem necessary based on above logic
+            //but it works to prevent travel in negative direction
+
+        if(currentLiftPosition < -5){
+            if(currentLiftPosition < maxPosition && stickY > 0) {
+                liftMotor.setPower(stickY);
+
+                telemetry.addData("Stick Y:", stickY);
+            }
+            else{
+                liftMotor.setPower(0);
+            }
         }
+
+
 
     }
 
@@ -230,14 +265,14 @@ public class Mechanum_Linear extends LinearOpMode {
 
     public void runClawServo() {
         //TODO: Change MAX. Currently set to 5 degrees or 5/280
-     //   double MAX = 0.0178; //guess claw grip at 5degree servo movement, may need to adjust
+     //   double MAX = 0.0178; //guess claw grip at 5 degree servo movement, may need to adjust
         double MAX = 0.2; //guess claw grip at 5degree servo movement, may need to adjust
 
         if(gamepad2.right_trigger > 0) {
-            clawServo.setPosition(MAX); //5 degrees - grip block
+            clawServo.setPosition(MAX);
         }
         else {
-            clawServo.setPosition(0); //0 degrees - release block
+            clawServo.setPosition(0);
         }
     }
 
