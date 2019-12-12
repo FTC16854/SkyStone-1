@@ -1,0 +1,11 @@
+1. Autonomus Mode
+    *Delivering Skystones - 2pts/stone
+    *Park on tape under Sky Bridge - 5pts
+        Platform to Build Site - 10pts
+        Delivering Skyzones - 10pts/Stone (if in right order)
+        Placing Stones on Foundation - 4pts/Stone
+2. Adjust Speed Cotnrols for Robot
+    *Square root of joystick (linear to curve)
+3. (try) Change Triggers to Bumpers for and Arm and Grip
+4. Clean up Comments and Clean up Code
+
