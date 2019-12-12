@@ -118,17 +118,6 @@ public class Mechanum_Linear extends LinearOpMode {
 
             runLiftMotor(gamepad2.left_stick_y);
 
-            /*
-            if(gamepad2.a){
-                runLiftMotor(1);
-            }
-            else if(gamepad2.b) {
-                runLiftMotor(-1);
-            }
-            */
-
-
-
             runArmServo();
             runClawServo();
             if(IsEmergency()) {
@@ -298,9 +287,9 @@ public class Mechanum_Linear extends LinearOpMode {
     public boolean IsEmergency() {
         boolean emergency = false;
 
-        if(gamepad1.dpad_right || gamepad1.dpad_left || gamepad1.dpad_down
-                || gamepad1.dpad_up || gamepad1.b || gamepad2.dpad_up || gamepad2.dpad_down
-                || gamepad2.dpad_left || gamepad2.dpad_right ) {
+        if((gamepad1.b && gamepad1.y) || (gamepad2.b && gamepad2.y))
+
+         {
             emergency = true;
             //power down all motors
             //servos should stop when breaking out of opmode active loop
