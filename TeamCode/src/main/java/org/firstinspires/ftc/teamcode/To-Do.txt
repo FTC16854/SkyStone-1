@@ -9,4 +9,5 @@
 3. (try) Change Triggers to Bumpers for and Arm and Grip
 4. Clean up Comments and Clean up Code
 5. Vision Web Cam - http://firsttechchallenge.blogspot.com/2018/12/external-cameras-for-bots-on-field.html
+6. Change grip to grab on press and drop on release
 

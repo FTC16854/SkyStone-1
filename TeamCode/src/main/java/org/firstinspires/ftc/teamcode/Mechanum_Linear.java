@@ -133,6 +133,12 @@ public class Mechanum_Linear extends LinearOpMode {
 
     public void moveRobot(){
         double leftStickMovement = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
+        //
+        /*
+        if(gamepad1.a){
+            leftStickMovement = leftStickMovement*.25;
+        }
+        */
         double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
         double Rotation = gamepad1.right_stick_x;
         final double lf = leftStickMovement * Math.cos(robotAngle) + Rotation;
@@ -149,11 +155,11 @@ public class Mechanum_Linear extends LinearOpMode {
     public void runIntakeMotor(){
         double power = 0.0;
         if (gamepad1.right_trigger > 0) {
-            power = 1.0; //forward
+            power = .5; //forward
             runClawServo();
         } else if (gamepad1.left_trigger > 0) {
-            power    = -1.0; //reverse
-
+            power    = -.5; //reverse
+            runClawServo();
         } else if (gamepad1.left_trigger == 0 && gamepad1.right_trigger == 0) {
             power = 0.0; //stop
         } else {
@@ -177,7 +183,7 @@ public class Mechanum_Linear extends LinearOpMode {
                                                   // guessing it was about 2 inches from memory
 
         //TODO: Assuming lift motor down is leftMotor encoder 0 since we reset on initialize
-        double minPosition = 0;
+        double minPosition = 15;
         //TODO: Change 10 to max inches for lift to rise - 10 inches was my safe guess
        // double maxPosition = COUNTS_PER_INCH * 26; //should be 10 inches, this will need to be
                                                   //adjusted based on max lift arm height
@@ -197,32 +203,16 @@ public class Mechanum_Linear extends LinearOpMode {
             liftMotor.setPower(power);
 
             telemetry.addData("Lift Power:", power);
-            }
-            else{
-                if(currentLiftPosition > 5){
-                    liftMotor.setPower(HOLDING_POWER);
-                }
-            //    liftMotor.setPower(0); //fail safe for max and min encoder position
-
-                telemetry.addData("Lift Power:",power);
-            }
-
-            //Should be cleaned up and/or removed. Doesn't seem necessary based on above logic
-            //but it works to prevent travel in negative direction
-
-        if(currentLiftPosition < -5){
-            if(currentLiftPosition < maxPosition && power > 0) {
-                liftMotor.setPower(power);
-
-                telemetry.addData("Lift Power:", power);
-            }
-            else{
-                liftMotor.setPower(0);
-            }
+        } else if(power == 0 && currentLiftPosition > minPosition + 100) {
+            liftMotor.setPower(HOLDING_POWER);
+            telemetry.addData("HOLDING AT  Power:", HOLDING_POWER);
         }
+        else{
 
+            liftMotor.setPower(0); //fail safe for max and min encoder position
 
-
+            telemetry.addData("Lift Power:",power);
+        }
     }
 
     /*
@@ -235,26 +225,6 @@ public class Mechanum_Linear extends LinearOpMode {
         //double liftHeightTolerance = MAX_LIFT_POSITION * .05;
         double liftHeightTolerance = 2880 ;
 
-        /*
-        //test code because encoder is not wired yet
-        if (gamepad2.left_trigger > 0) {
-            armServo.setPosition(MAX); //180 degrees - away from robot
-        } else {
-            armServo.setPosition(0); //0 degrees - point in towards robot
-        }
-        */
-        //Make sure the lift is up before allowing arm to swing in or out
-        /*
-        if(currentLiftPosition > (MAX_LIFT_POSITION - liftHeightTolerance)) {
-
-            if (gamepad2.left_trigger > 0.1) {
-                armServo.setPosition(MAX); //180 degrees - away from robot
-            } else {
-                armServo.setPosition(0); //0 degrees - point in towards robot
-            }
-        }
-        */
-
         if ((currentLiftPosition) > liftHeightTolerance){
             if (gamepad2.left_trigger > 0.1) {
                 armServo.setPosition(MAX); //180 degrees - away from robot
@@ -266,8 +236,6 @@ public class Mechanum_Linear extends LinearOpMode {
                 telemetry.addData("ServoPosition",armServo.getPosition());
             }
         }
-
-
     }
 
     public void runClawServo() {
@@ -275,11 +243,16 @@ public class Mechanum_Linear extends LinearOpMode {
      //   double MAX = 0.0178; //guess claw grip at 5 degree servo movement, may need to adjust
         double MAX = 0.2; //guess claw grip at 5degree servo movement, may need to adjust
 
-        if(gamepad2.right_trigger > 0) {
+        if(gamepad2.right_trigger > 0 || gamepad1.right_trigger > 0) {
             clawServo.setPosition(MAX);
         }
         else {
-            clawServo.setPosition(0);
+            if(gamepad1.left_trigger > 0) {
+                clawServo.setPosition(MAX);
+            }
+            else {
+                clawServo.setPosition(0);
+            }
         }
     }
 
