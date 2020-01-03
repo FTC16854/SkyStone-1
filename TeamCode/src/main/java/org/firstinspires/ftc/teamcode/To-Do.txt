@@ -11,3 +11,19 @@
 5. Vision Web Cam - http://firsttechchallenge.blogspot.com/2018/12/external-cameras-for-bots-on-field.html
 6. Change grip to grab on press and drop on release
 
+TEAM LESSONS LEARNED NOTES AFTER KINGSTON
+-Check for a lift bug where it keeps lifting w/o control input
+-Autonomus to stop on line
+-Faster / slower speed, make smoother
+
+JWN NOTES AFTER KINGSTON
+1. Autonomus to park on line
+2. Speed control for robot
+    Enable a curve/ramp on the input?
+    Different curve for turning vs movement?
+    Fast / slow mode?
+3. Digital controls for gripper and gripper arm? Press once close, press once open? Debounce is fun.
+4. Experiment with encoder based lift levels
+
+
+
