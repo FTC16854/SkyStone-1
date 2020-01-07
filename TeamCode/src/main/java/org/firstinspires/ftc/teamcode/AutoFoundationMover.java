@@ -30,14 +30,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -53,9 +50,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="mecanumAuto", group="Linear Opmode")
+@Autonomous(name="Start from left", group="Linear Opmode")
 //@Disabled
-public class MecanumAuto extends LinearOpMode {
+public class AutoFoundationMover extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -67,7 +64,8 @@ public class MecanumAuto extends LinearOpMode {
     private DcMotorSimple liftMotor = null;
     private Servo armServo = null;
     private Servo clawServo = null;
-
+    private Servo foundationMoverL;
+    private Servo foundationMoverR;
     @Override
 
     public void runOpMode() {
@@ -85,7 +83,10 @@ public class MecanumAuto extends LinearOpMode {
         liftMotor = hardwareMap.get(DcMotorSimple.class, "lm");
         //armServo = hardwareMap.get(Servo.class, "as");
         //clawServo = hardwareMap.get(Servo.class,"cs");
+        foundationMoverL = hardwareMap.get(Servo.class, "foundationmoverL");
+        foundationMoverR = hardwareMap.get (Servo.class, "foundationmoverR");
 
+        foundationMoverL.setDirection (Servo.Direction.REVERSE);
         // Wait for the game to start (driver presses PLAY)
 
 
@@ -93,18 +94,21 @@ public class MecanumAuto extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
-            if (gamepad1.b) {
-                moveRobot(.5, 90);
-            } else {
-                if (gamepad1.a) {
-                    moveRobot(.5, 45);
-                } else {
-                    stopRobot();
-                }
+         moveRobot(0.5, 0);
+         sleep(2000);
+         stopRobot();
+
+         moveRobot(0.5, 180);
+         sleep(2000);
+         stopRobot();
+
+         moveRobot(0.5, 180);
+         sleep(2000);
+         stopRobot();
+
+         break;
             }
         }
-    }
-
     public void moveRobot(double speed, double angle) {
         speed = -speed;
         double robotAngle = Math.toRadians(angle) - Math.PI / 4;
@@ -117,8 +121,8 @@ public class MecanumAuto extends LinearOpMode {
         rightFront.setPower(rf);
         leftRear.setPower(lr);
         rightRear.setPower(rr);
-
     }
+
 
     public void stopRobot() {
         leftFront.setPower(0);
@@ -127,5 +131,15 @@ public class MecanumAuto extends LinearOpMode {
         rightRear.setPower(0);
 
     }
-
+    public void foundationMover(){
+        double downPosition = 0.5;
+        double upPosition = 0;
+        if (gamepad2.x) {
+            foundationMoverL.setPosition(downPosition);
+            foundationMoverR.setPosition(downPosition + 0.05);
+        }else {
+            foundationMoverR.setPosition(upPosition);
+            foundationMoverL.setPosition(upPosition);
+        }
+    }
 }

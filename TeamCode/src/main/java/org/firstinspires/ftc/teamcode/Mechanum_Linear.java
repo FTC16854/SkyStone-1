@@ -29,16 +29,19 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import com.qualcomm.hardware.bosch.BNO055IMU;
 
 @TeleOp(name="Mecanum Drive", group="Linear Opmode")
 //@Disabled
@@ -61,8 +64,9 @@ public class Mechanum_Linear extends LinearOpMode {
     //which should only happen when in MAX LIFT POSITION
     private double currentLiftPosition;
     private double MAX_LIFT_POSITION;
-
-
+    private BNO055IMU               imu;
+    private Orientation lastAngles = new Orientation ();
+    private double heading;
     /*
         DC and Servo motor setup, this method should be called first in the opmode method.
         You can change motor and servo direction in by removing comments in this code
@@ -84,6 +88,26 @@ public class Mechanum_Linear extends LinearOpMode {
 
         foundationMoverL.setDirection (Servo.Direction.REVERSE);
 
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.mode                = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled      = false;
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+
+        imu.initialize(parameters);
+
+        while (!isStopRequested() && !imu.isGyroCalibrated()){
+
+            sleep(50);
+            idle();
+
+        }
 
         foundationMoverL.setPosition(0);
         foundationMoverR.setPosition(0);
@@ -120,19 +144,21 @@ public class Mechanum_Linear extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            moveRobot();
+            moveRobotFeildCentric();
             runIntakeMotor();
 
             runLiftMotor(gamepad2.left_stick_y);
-            foundtionMover();
+            foundationMover();
             runArmServo();
             runClawServo();
             if(IsEmergency()) {
                 break;
             }
             telemetry.addData("lift current pos", currentLiftPosition);
+            telemetry.addData("Heading",heading);
             telemetry.update();
         }
+
         telemetry.addData("Status", "OpMode Stopped.");
         telemetry.update();
     }
@@ -147,7 +173,28 @@ public class Mechanum_Linear extends LinearOpMode {
         }
         */
         double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
-        double Rotation = gamepad1.right_stick_x;
+        double Rotation = -gamepad1.right_stick_x;
+        final double lf = leftStickMovement * Math.cos(robotAngle) + Rotation;
+        final double rf = leftStickMovement * Math.sin(robotAngle) - Rotation;
+        final double lr = leftStickMovement * Math.sin(robotAngle) + Rotation;
+        final double rr = leftStickMovement * Math.cos(robotAngle) - Rotation;
+        leftFront.setPower(lf);
+        rightFront.setPower(rf);
+        leftRear.setPower(lr);
+        rightRear.setPower(rr);
+    }
+    public void moveRobotFeildCentric(){
+        double leftStickMovement = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
+        //
+        /*
+        if(gamepad1.a){
+            leftStickMovement = leftStickMovement*.25;
+        }
+        */
+        double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
+        double currentAngle = Math.toRadians(getAngle());
+        robotAngle = robotAngle - currentAngle;
+        double Rotation = -gamepad1.right_stick_x;
         final double lf = leftStickMovement * Math.cos(robotAngle) + Rotation;
         final double rf = leftStickMovement * Math.sin(robotAngle) - Rotation;
         final double lr = leftStickMovement * Math.sin(robotAngle) + Rotation;
@@ -283,7 +330,7 @@ public class Mechanum_Linear extends LinearOpMode {
         return emergency;
     }
 
-    public void foundtionMover(){
+    public void foundationMover(){
         double downPosition = 0.5;
         double upPosition = 0;
         if (gamepad2.x) {
@@ -293,6 +340,49 @@ public class Mechanum_Linear extends LinearOpMode {
             foundationMoverR.setPosition(upPosition);
             foundationMoverL.setPosition(upPosition);
         }
+    }
+
+
+    /**
+     * Resets the cumulative angle tracking to zero.
+     */
+    private void resetAngle()
+    {
+        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        heading = 0;
+}
+
+   /*
+    private double getAngle()
+    {
+        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
+    }
+     */
+
+    public double getAngle() {
+        // Z axis is returned as 0 to +180 or 0 to -180 rolling to -179 or +179 when passing 180
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        heading = angles.firstAngle;
+        return heading;
     }
 
 }
