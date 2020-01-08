@@ -37,20 +37,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
-
-@Autonomous(name="Start from left", group="Linear Opmode")
+@Autonomous(name="Start from left Foundation Mover", group="Linear Opmode")
 //@Disabled
 public class AutoFoundationMover extends LinearOpMode {
 
@@ -98,12 +85,22 @@ public class AutoFoundationMover extends LinearOpMode {
          sleep(2000);
          stopRobot();
 
-         moveRobot(0.5, 180);
+         moveRobot(0.5, 270);
          sleep(2000);
          stopRobot();
 
-         moveRobot(0.5, 180);
-         sleep(2000);
+         foundationMover(false);
+         sleep(1500);
+
+         moveRobot(0.5, 80);
+         sleep(2500);
+         stopRobot();
+
+         foundationMover(true);
+         sleep(1000);
+
+         moveRobot(0.5,180);
+         sleep(3000);
          stopRobot();
 
          break;
@@ -131,10 +128,10 @@ public class AutoFoundationMover extends LinearOpMode {
         rightRear.setPower(0);
 
     }
-    public void foundationMover(){
+    public void foundationMover(boolean Up){
         double downPosition = 0.5;
         double upPosition = 0;
-        if (gamepad2.x) {
+        if (Up == false ) {
             foundationMoverL.setPosition(downPosition);
             foundationMoverR.setPosition(downPosition + 0.05);
         }else {
