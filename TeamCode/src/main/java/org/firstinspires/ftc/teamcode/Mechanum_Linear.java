@@ -111,7 +111,7 @@ public class Mechanum_Linear extends LinearOpMode {
 
         foundationMoverL.setPosition(0);
         foundationMoverR.setPosition(0);
-       // clawServo.setDirection(Servo.Direction.REVERSE);
+        clawServo.setDirection(Servo.Direction.REVERSE);
 
         //TODO: setup armServo, it it's moving backwards, uncomment next line
         //armServo.setDirection(Servo.Direction.REVERSE);
@@ -185,6 +185,7 @@ public class Mechanum_Linear extends LinearOpMode {
     }
     public void moveRobotFeildCentric(){
         double leftStickMovement = Math.hypot(gamepad1.left_stick_x, -gamepad1.left_stick_y);
+        leftStickMovement = (0.75 *(leftStickMovement*leftStickMovement)) +0.5*(leftStickMovement);
         //
         /*
         if(gamepad1.a){
@@ -195,6 +196,14 @@ public class Mechanum_Linear extends LinearOpMode {
         double currentAngle = Math.toRadians(getAngle());
         robotAngle = robotAngle - currentAngle;
         double Rotation = -gamepad1.right_stick_x;
+        if(Rotation < 0) {
+
+            Rotation = - (0.75 *(Rotation*Rotation));
+        }
+
+        else {
+            Rotation = (0.75 *(Rotation*Rotation));
+        }
         final double lf = leftStickMovement * Math.cos(robotAngle) + Rotation;
         final double rf = leftStickMovement * Math.sin(robotAngle) - Rotation;
         final double lr = leftStickMovement * Math.sin(robotAngle) + Rotation;
@@ -293,23 +302,26 @@ public class Mechanum_Linear extends LinearOpMode {
     }
 
     public void runClawServo() {
-        //TODO: Change MAX. Currently set to 5 degrees or 5/280
-     //   double MAX = 0.0178; //guess claw grip at 5 degree servo movement, may need to adjust
-        double MAX = 0.15; //guess claw grip at 5degree servo movement, may need to adjust
 
-        if(gamepad2.right_trigger > 0  ) {
-            clawServo.setPosition(MAX);
+
+        if((gamepad2.right_trigger > 0) || (gamepad1.left_trigger > 0) || (gamepad1.right_trigger > 0)) {
+            openClawServo();
         }
-        else {
-            if(gamepad1.left_trigger > 0) {
-                clawServo.setPosition(MAX);
-            }
+
             else {
-                clawServo.setPosition(0.07);
+                closeClawServo();
             }
         }
+
+    public void closeClawServo(){
+
+        clawServo.setPosition(0.07);
     }
 
+    public void openClawServo(){
+
+        clawServo.setPosition(0.15);
+    }
 
     public boolean IsEmergency() {
         boolean emergency = false;
