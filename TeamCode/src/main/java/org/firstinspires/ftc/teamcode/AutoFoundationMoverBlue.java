@@ -43,9 +43,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
 
-@Autonomous(name="Start from left Foundation Mover", group="Linear Opmode")
+@Autonomous(name="Start from left Foundation Mover BLUE", group="Linear Opmode")
 //@Disabled
-public class AutoFoundationMover extends LinearOpMode {
+public class AutoFoundationMoverBlue extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();

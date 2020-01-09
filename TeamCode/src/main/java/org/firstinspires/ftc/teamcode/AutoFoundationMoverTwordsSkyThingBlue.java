@@ -43,9 +43,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
-@Autonomous(name="Start from left Foundation Mover Twords Sky thingy", group="Linear Opmode")
+@Autonomous(name="Start from left Foundation Mover Twords Skybridge BLUE", group="Linear Opmode")
 //@Disabled
-public class AutoFoundationMoverTwordsSkyThing extends LinearOpMode {
+public class AutoFoundationMoverTwordsSkyThingBlue extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
