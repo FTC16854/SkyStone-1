@@ -64,11 +64,13 @@ public class Mecanum_Linear extends LinearOpMode {
     //which should only happen when in MAX LIFT POSITION
     private double currentLiftPosition;
     private double MAX_LIFT_POSITION;
+    private boolean armOut;
+    private double armDebounce;
 
     private BNO055IMU               imu;
     private Orientation lastAngles = new Orientation ();
     private double heading;
-
+    private double headingoffset;
 
     /*
         DC and Servo motor setup, this method should be called first in the opmode method.
@@ -94,7 +96,7 @@ public class Mecanum_Linear extends LinearOpMode {
 
         //begin imu init code
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode                = BNO055IMU.SensorMode.IMU;
+        parameters.mode               = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled      = false;
@@ -109,6 +111,8 @@ public class Mecanum_Linear extends LinearOpMode {
             idle();
         }
         //end imu init code
+
+        headingoffset = headingOffsetHolder.getOffset();
 
         foundationMoverL.setPosition(0);
         foundationMoverR.setPosition(0);
@@ -138,13 +142,15 @@ public class Mecanum_Linear extends LinearOpMode {
         runtime.reset();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            heading = getAngle()-headingoffset;
+            resetheading();
 
             moveRobotFieldCentric();
             runIntakeMotor();
-
             runLiftMotor(gamepad2.left_stick_y);
             foundationMover();
-            runArmServo();
+            //runArmServo();
+            toggleArmServo();
             runClawServo();
             if(IsEmergency()) {
                 break;
@@ -183,7 +189,7 @@ public class Mecanum_Linear extends LinearOpMode {
         leftStickMovement = (0.75 *(leftStickMovement*leftStickMovement)) +0.5*(leftStickMovement);
 
         double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
-        double currentAngle = Math.toRadians(getAngle());
+        double currentAngle = Math.toRadians(heading);
         robotAngle = robotAngle - currentAngle;
 
         double Rotation = -gamepad1.right_stick_x;
@@ -292,6 +298,38 @@ public class Mecanum_Linear extends LinearOpMode {
         }
     }
 
+    public void toggleArmServo() {
+        //TODO: Change MAX. Currently set to 180 degrees or 180/280
+        double MAX = 0.7; //should be 180 degrees, 1.0 should be 280 -- the max for gobuilda servo
+
+        //double liftHeightTolerance = MAX_LIFT_POSITION * .05;
+        double liftHeightTolerance = 2120 ;
+      //  private boolean armOut;
+        //private double armDebounce;
+
+        //check time since trigger was last pressed
+        if(armDebounce != 0 && armDebounce+500< System.currentTimeMillis()){
+            armDebounce=0;
+        }
+
+        if(gamepad2.left_bumper && armDebounce==0) {
+            armOut =! armOut;
+            armDebounce = System.currentTimeMillis();
+        }
+
+        if ((currentLiftPosition) > liftHeightTolerance){
+            if (armOut == true) {
+                armServo.setPosition(MAX); //180 degrees - away from robot
+                telemetry.addData("leftTrigger",gamepad2.left_trigger);
+                telemetry.addData("ServoPosition",armServo.getPosition());
+            } else {
+                armServo.setPosition(0); //0 degrees - point in towards robot
+                telemetry.addData("leftTrigger",gamepad2.left_trigger);
+                telemetry.addData("ServoPosition",armServo.getPosition());
+            }
+        }
+    }
+
     public void runClawServo() {
         if((gamepad2.right_trigger > 0) || (gamepad1.left_trigger > 0) || (gamepad1.right_trigger > 0)) {
             openClawServo();
@@ -355,7 +393,30 @@ public class Mecanum_Linear extends LinearOpMode {
         heading = angles.firstAngle;
         return heading;
     }
+    public void resetheading(){
+        if (gamepad1.back){
+            sleep(1000);
+            if (gamepad1.back) {
+                headingoffset=0;
+                BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+                parameters.mode                = BNO055IMU.SensorMode.IMU;
+                parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+                parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+                parameters.loggingEnabled      = false;
+                // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+                // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+                // and named "imu".
+                imu = hardwareMap.get(BNO055IMU.class, "imu");
+                imu.initialize(parameters);
 
+                while (!isStopRequested() && !imu.isGyroCalibrated()){
+                    sleep(50);
+                    idle();
+                }
+
+            }
+        }
+    }
 }
 
 
