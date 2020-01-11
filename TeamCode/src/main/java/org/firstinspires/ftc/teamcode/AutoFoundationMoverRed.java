@@ -109,26 +109,29 @@ public class AutoFoundationMoverRed extends LinearOpMode {
         // Needs adjustment to accommodate red side
         //Auto Starts
         while (opModeIsActive()) {
-         moveRobot(0.5, 0);
+         moveRobot(0.5, 180);
          sleep(2000);
          stopRobot();
 
          moveRobot(0.5, 270);
-         sleep(2500);
+         sleep(2750);
          stopRobot();
 
          foundationMover(false);
          sleep(1500);
 
-         moveRobot(0.5, 80);
-         sleep(3500);
+         moveRobot(0.5, 100);
+         sleep(4000);
          stopRobot();
 
          foundationMover(true);
          sleep(1000);
 
-         moveRobot(0.5,180);
+         moveRobot(0.5,355);
          sleep(6250);
+
+            moveRobot(0.5,90);
+            sleep(750);
          stopRobot();
 
          heading = getAngle();

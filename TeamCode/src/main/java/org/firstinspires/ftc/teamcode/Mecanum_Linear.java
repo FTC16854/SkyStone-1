@@ -331,7 +331,7 @@ public class Mecanum_Linear extends LinearOpMode {
     }
 
     public void runClawServo() {
-        if((gamepad2.right_trigger > 0) || (gamepad1.left_trigger > 0) || (gamepad1.right_trigger > 0)) {
+        if((gamepad2.right_bumper) || (gamepad1.left_trigger > 0) || (gamepad1.right_trigger > 0)) {
             openClawServo();
         }
         else {
@@ -395,7 +395,7 @@ public class Mecanum_Linear extends LinearOpMode {
     }
     public void resetheading(){
         if (gamepad1.back){
-            sleep(1000);
+            sleep(500);
             if (gamepad1.back) {
                 headingoffset=0;
                 BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();

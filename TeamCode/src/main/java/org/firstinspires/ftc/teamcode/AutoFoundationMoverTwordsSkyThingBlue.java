@@ -134,7 +134,7 @@ public class AutoFoundationMoverTwordsSkyThingBlue extends LinearOpMode {
          sleep(2000);
          stopRobot();
 
-         moveRobot(0.5,180);
+         moveRobot(0.5,0);
          sleep(2300);
          stopRobot();
 
